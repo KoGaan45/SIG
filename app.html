@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+    <html>
+    <head>
+        <title>OpenLayers Map</title>
+        <link rel="stylesheet" href="https://openlayers.org/en/v6.5.0/css/ol.css" type="text/css">
+        <meta charset="UTF-8">
+        <style>
+            body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: #333;
+    }
+
+    #poiForm {
+        display: none;
+    }
+
+    h1, h2, h3, p {
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.5em;
+        margin-top: 20px; /* Adjust as needed */
+    }
+
+    h2 {
+        font-size: 2em;
+    }
+
+    h3 {
+        font-size: 1.5em;
+    }
+
+    p {
+        font-size: 1em;
+    }
+        
+            #map {
+                width: 600px;
+                height: 600px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            }
+        </style>
+        <script src="https://openlayers.org/en/v6.5.0/build/ol.js"></script>
+    </head>
+    <body>
+
+        <h1>SIG Nomades : Mini-projet 2023</h1>
+
+        <div id="map"></div>
+
+        <form id="poiForm">
+            <h2>Ajouter un point d'intérêt</h2>
+        
+            <label for="name">Nom :</label>
+            <input type="text" id="name" name="name" required>
+        
+            <label for="component">Composante :</label>
+            <input type="text" id="component" name="component" required>
+        
+            <label for="address">Adresse :</label>
+            <input type="text" id="address" name="address" required>
+        
+            <label for="gps">Coordonnées GPS :</label>
+            <input type="text" id="gps" name="gps" placeholder="Latitude, Longitude" required>
+        
+            <label for="campus">Campus :</label>
+            <input type="text" id="campus" name="campus" required>
+        
+            <input type="submit" value="Ajouter">
+        </form>
+
+        <script>
+            var map = new ol.Map({
+                target: 'map',
+                layers: [
+                    new ol.layer.Tile({
+                        source: new ol.source.OSM()
+                    })
+                ],
+                view: new ol.View({
+                    center: ol.proj.fromLonLat([1.934126, 47.843909]), // Coordinates for Orléans
+                    zoom: 16 // Increase the zoom level
+                }),
+                interactions: ol.interaction.defaults({doubleClickZoom: false})
+            });
+
+            var form = document.getElementById('poiForm');
+    var gpsInput = document.getElementById('gps');
+    var compteur = 0;
+        
+            map.on('dblclick', function(evt) {
+        var coordinate = ol.proj.toLonLat(evt.coordinate);
+        gpsInput.value = coordinate.join(', ');
+        gpsInput.readOnly = true;
+        if(compteur%2==0){
+            form.style.display = 'block';
+            compteur++;
+        }
+        else{
+            form.style.display = 'none';
+            compteur++;
+        }
+    });
+        </script>
+    </body>
+    </html>
