@@ -153,15 +153,17 @@
 
     // Create the data object
     var data = {
-    campus: data.campus,
-    component: data.component,
-    name: data.name,
-    address: data.address,
-    gps: {
-        latitude: parseFloat(gpsParts[0]),
-        longitude: parseFloat(gpsParts[1])
-    }
+        campus: campus,
+        component: component,
+        name: name,
+        address: address,
+        gps: {
+            latitude: parseFloat(gpsParts[0]),
+            longitude: parseFloat(gpsParts[1])
+        }
     };
+    
+    console.log(data);
 
     // Send the data to the server
     fetch('ajouterPI', {

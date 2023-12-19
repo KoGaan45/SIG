@@ -15,7 +15,7 @@ async function executeQuery(query) {
         database: 'toto'
     });
 
-    await client.connect();
+    client.connect();
 
     const dbRes = await client.query(query);
 
@@ -29,8 +29,7 @@ async function executeQuery(query) {
 app.post('/ajouterPI', async (req, res) => {
     const data = req.body;
     console.log(data);
-    const reelgps = data.gps.replace(/'/g, "");
-    const query = "INSERT INTO public.pointinteret(moncampus, composante, nom, adresse, position)VALUES ('${data.campus}','${data.component}', '${data.name}','${data.address}' , ST_SetSRID(ST_Point('${reelgps}'),3857)) ";
+    const query = `INSERT INTO public.pointinteret(moncampus, composante, nom, adresse, position) VALUES ('${data.campus}','${data.component}', '${data.name}','${data.address}' , ST_SetSRID(ST_Point(${data.gps.longitude}, ${data.gps.latitude}),3857))`;
     const result = await executeQuery(query);
     res.json(result);
 });
