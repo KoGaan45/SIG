@@ -6,19 +6,21 @@ const app = express();
 
 app.get('/api/data', async (req, res) => {
     const client = new Client({
-        host: 'localhost',
+        host: '172.17.0.2',
         port: 5432,
-        user: 'your_username',
-        password: 'your_password',
-        database: 'your_database'
+        user: 'postgres',
+        password: 'mysecretpassword',
+        database: 'postgres'
     });
 
     client.connect();
 
     const dbRes = await client.query('SELECT * FROM your_table');
+
     client.end();
 
     res.json(dbRes.rows);
+    console.log(res.json(dbRes.rows));
 });
 
 const server = http.createServer((req, res) => {
