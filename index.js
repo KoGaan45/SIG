@@ -1,36 +1,68 @@
-const http = require('http');
-const fs = require('fs');
 const express = require('express');
 const { Client } = require('pg');
+const fs = require('fs');
 const app = express();
+app.use(express.json());
 
-app.get('/api/data', async (req, res) => {
+async function executeQuery(query) {
+    console.log('Executing query:', query);
+
     const client = new Client({
-        host: '172.17.0.2',
+        host: 'localhost',
         port: 5432,
-        user: 'postgres',
-        password: 'mysecretpassword',
-        database: 'postgres'
+        user: 'toto',
+        password: 'toto',
+        database: 'toto'
     });
 
-    client.connect();
+    await client.connect();
 
-    const dbRes = await client.query('SELECT * FROM your_table');
+    const dbRes = await client.query(query);
 
     client.end();
 
-    res.json(dbRes.rows);
-    console.log(res.json(dbRes.rows));
+    console.log('Query result:', dbRes.rows);
+
+    return dbRes.rows;
+}
+
+app.post('/ajouterPI', async (req, res) => {
+    const data = req.body;
+    console.log(data);
+    const reelgps = data.gps.replace(/'/g, "");
+    const query = "INSERT INTO public.pointinteret(moncampus, composante, nom, adresse, position)VALUES ('${data.campus}','${data.component}', '${data.name}','${data.address}' , ST_SetSRID(ST_Point('${reelgps}'),3857)) ";
+    const result = await executeQuery(query);
+    res.json(result);
 });
 
-const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
+app.get('/getAllCampus', async (req, res) => {
+    const query = 'SELECT * FROM public.campus';
+    const result = await executeQuery(query);
+    res.json(result);
+    console.log(result);
+});
+
+app.get('/insert', async (req, res) => {
+    const query = "INSERT INTO public.campus(ville) VALUES ('Chateaudun');";
+    const result = await executeQuery(query);
+    res.json(result);
+    console.log(result);
+});
+
+app.get('/getPI', async (req, res) => {
+    const query = 'SELECT * FROM pointinteret';
+    const result = await executeQuery(query);
+    res.json(result);
+    console.log(result);
+});
+
+app.get('/', (req, res) => {
     const htmlContent = fs.readFileSync('app.html', 'utf8');
-    res.end(htmlContent);
+    res.send(htmlContent);
 });
 
-server.listen(3000, () => {
-    console.log('Server is running on port 3000');
+app.listen(3000, () => {
+    console.log('App is running on port 3000');
 });
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
