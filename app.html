@@ -1,225 +1,440 @@
 <!DOCTYPE html>
-    <html>
-    <head>
-        <title>OpenLayers Map</title>
-        <link rel="stylesheet" href="https://openlayers.org/en/v6.5.0/css/ol.css" type="text/css">
-        <meta charset="UTF-8">
-        <style>
-            body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        height: 100vh;
-        margin: 0;
-        font-family: Arial, sans-serif;
-        color: #333;
-    }
+<html>
 
-    #poiForm {
-        display: none;
-    }
+<head>
+    <title>OpenLayers Map</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v6.5.0/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
 
-    h1, h2, h3, p {
-        text-align: center;
-    }
+        h1,
+        h2,
+        h3,
+        p {
+            text-align: center;
+        }
 
-    h1 {
-        font-size: 2.5em;
-        margin-top: 20px; /* Adjust as needed */
-    }
+        h1 {
+            font-size: 2.5em;
+            margin-top: 20px;
+            /* Adjust as needed */
+        }
 
-    h2 {
-        font-size: 2em;
-    }
+        h2 {
+            font-size: 2em;
+        }
 
-    h3 {
-        font-size: 1.5em;
-    }
+        h3 {
+            font-size: 1.5em;
+        }
 
-    p {
-        font-size: 1em;
-    }
-        
-            #map {
-                width: 600px;
-                height: 600px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        p {
+            font-size: 1em;
+        }
+
+        #map {
+            width: 1200px;
+            height: 600px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+
+        #popup {
+            position: absolute;
+            min-width: 60px;
+            /* Largeur minimale du popup */
+            max-width: none;
+            /* Aucune largeur maximale */
+            width: auto;
+            /* La largeur s'adapte automatiquement à la quantité de texte */
+            height: auto;
+            /* La hauteur s'adapte automatiquement à la quantité de texte */
+            padding: 2px;
+            background: white;
+            border: 1px solid #ccc;
+            pointer-events: none;
+        }
+
+        #poiFormAdd {
+            display : none;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        #poiFormAdd label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #poiFormAdd input,
+        #poiFormAdd textarea,
+        #poiFormAdd select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        #poiFormAdd button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #poiFormAdd button:hover {
+            background-color: #0056b3;
+        }
+
+        .popover-content {
+            margin: 10;
+            white-space: nowrap;
+        }
+
+        .popover {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            max-width: 100%;
+            container: "body";
+        }
+
+        #container {
+            display: flex;
+        }
+
+        #mapContainer {
+            flex-grow: 1;
+            transition: flex-grow 0.5s ease-in-out;
+        }
+
+        #formContainer {
+            flex-grow: 0;
+            display: none;
+            transition: flex-grow 0.5s ease-in-out;
+            overflow: auto;
+        }
+
+        #poiFormMerge {
+            display : none;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        #poiFormMerge label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #poiFormMerge input,
+        #poiFormMerge textarea,
+        #poiFormMerge select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        #poiFormMerge button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #poiFormMerge button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <script src="https://openlayers.org/en/v6.5.0/build/ol.js"></script>
+
+</head>
+
+<body>
+
+    <h1>SIG Nomades : Mini-projet 2023</h1>
+
+    <div id="container">
+        <div id="mapContainer">
+            <div id="map"></div>
+        </div>
+        <div id="formContainer">
+            <form id="poiFormAdd">
+                <h2>Ajouter un point d'intérêt</h2>
+
+                <label for="name">Nom :</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="component">Composante :</label>
+                <input type="text" id="component" name="component" required>
+
+                <label for="address">Adresse :</label>
+                <input type="text" id="address" name="address" required>
+
+                <label for="gps">Coordonnées GPS :</label>
+                <input type="text" id="gps" name="gps" placeholder="Longitude, Latitude," required>
+
+                <label for="campus">Campus :</label>
+                <select id="campus" name="campus" required></select>
+
+                <input type="submit" value="Ajouter">
+                <input type="button" id="button" value="Fermer">
+            </form>
+            <form id="poiFormMerge">
+                <h2>Modifier un point d'intérêt</h2>
+
+                <label for="name">Nom :</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="gps">Coordonnées GPS :</label>
+                <input type="text" id="gps" name="gps" placeholder="Longitude, Latitude," required>
+
+                <input type="submit" value="Modifier">
+                <input type="button" id="button" value="Fermer">
+
+            </form>
+        </div>
+    </div>
+
+    <div id="popup"></div>
+
+
+
+    <script>
+        var geoserver = 'http://localhost:8080/geoserver/cite/wms'
+
+        var osm = new ol.layer.Tile({
+            source: new ol.source.OSM()
+        });
+
+        const vectorSource = new ol.source.Vector({
+            format: new ol.format.GeoJSON(),
+            loader: function (extent, resolution, projection, success, failure) {
+                const proj = projection.getCode();
+                const url = "http://localhost:8080/geoserver/cite/" + 'ows?service=WFS' +
+                    '&version=1.0.0&request=GetFeature&typeName=cite:pointinteret' +
+                    '&maxFeatures=50&outputFormat=application/json' +
+                    '&srsname=' + proj +
+                    '&bbox=' + extent.join(',') + ',' + proj;
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url);
+                const onError = function () {
+                    vectorSource.removeLoadedExtent(extent);
+                    failure();
+                }
+                xhr.onerror = onError;
+                xhr.onload = function () {
+                    if (xhr.status == 200) {
+                        const features = vectorSource.getFormat().readFeatures(xhr.responseText);
+                        vectorSource.addFeatures(features);
+                        success(features);
+                    } else {
+                        onError();
+                    }
+                }
+                xhr.send();
+            },
+            strategy: ol.loadingstrategy.bbox,
+        });
+
+        var pointinteret = new ol.layer.Vector({
+            source: vectorSource,
+            style: new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: 20,
+                    fill: new ol.style.Fill({ color: 'yellow' }),
+                    stroke: new ol.style.Stroke({ color: 'red', width: 1 })
+                })
+            })
+        });
+
+        var map = new ol.Map({
+
+            target: 'map',
+            extent: ol.proj.transformExtent([1.8, 47.8, 2.0, 48.0], 'EPSG:4326', 'EPSG:3857'),
+            layers: [osm,
+                pointinteret],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([1.934126, 47.843909]),
+                zoom: 16
+            }),
+            interactions: ol.interaction.defaults({ doubleClickZoom: false })
+        });
+
+        var formAdd = document.getElementById('poiFormAdd');
+        var formMerge = document.getElementById('poiFormMerge');
+        var gpsInput = document.getElementById('gps');
+
+        map.on('dblclick', function (evt) {
+
+            // Réduire la carte et afficher le formulaire
+            var mapContainer = document.getElementById('mapContainer');
+            var formContainer = document.getElementById('formContainer');
+
+            mapContainer.style.flexGrow = '0';
+            formContainer.style.flexGrow = '1';
+            formContainer.style.display = 'block';
+            formAdd.style.display = 'block';
+            formMerge.style.display = 'none';
+
+            fetch('/getAllCampus')
+                .then(response => response.json())
+                .then(data => {
+
+                    var select = document.getElementById('campus');
+
+                    data.forEach(campus => {
+                        var option = document.createElement('option');
+                        option.value = campus.idcampus;
+                        option.text = campus.ville;
+                        select.add(option);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+
+            var coordinate = ol.proj.toLonLat(evt.coordinate);
+            gpsInput.value = coordinate.join(', ');
+            gpsInput.readOnly = true;
+        });
+
+        document.getElementById('button').addEventListener("click",function (event) {
+            event.preventDefault();
+            mapContainer.style.flexGrow = '1';
+            formContainer.style.flexGrow = '0';
+            formContainer.style.display = 'none';
+        });
+
+        document.getElementById('poiFormAdd').addEventListener('submit', function (event) {
+
+            event.preventDefault();
+
+            var name = document.getElementById('name').value;
+            var component = document.getElementById('component').value;
+            var address = document.getElementById('address').value;
+            var gps = document.getElementById('gps').value;
+            var campus = document.getElementById('campus').value;
+
+
+            var gpsParts = gps.split(',');
+
+            var data = {
+                campus: campus,
+                component: component,
+                name: name,
+                address: address,
+                gps: {
+                    longitude: parseFloat(gpsParts[0]),
+                    lattitude: parseFloat(gpsParts[1])
+                }
+            };
+
+            console.log(data);
+
+            fetch('ajouterPI', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    pointinteret.getSource().refresh();
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+
+        // Créer un élément pour la popup
+        var element = document.getElementById('popup');
+
+        // Créer une overlay pour la popup
+        var popup = new ol.Overlay({
+            element: element,
+            positioning: 'bottom-center',
+            stopEvent: false,
+            offset: [0, -50]
+        });
+        map.addOverlay(popup);
+
+        map.on('click', function (evt) {
+
+            var pixel = map.getEventPixel(evt.originalEvent);
+            var hit = map.hasFeatureAtPixel(pixel);
+            map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+
+            var feature = map.forEachFeatureAtPixel(pixel,
+                function (feature, layer) {
+                    return feature;
+                });
+
+            var mapContainer = document.getElementById('mapContainer');
+            var formContainer = document.getElementById('formContainer');
+
+            if(formContainer.style.display == "block") {
+                var coordinate = ol.proj.toLonLat(evt.coordinate);
+                gpsInput.value = coordinate.join(', ');
+                gpsInput.readOnly = true;
             }
 
-            
-        </style>
+            if (feature) {
 
-        <script src="https://openlayers.org/en/v6.5.0/build/ol.js"></script>
-       
-    </head>
-    <body>
+                var coordinates = feature.getGeometry().getCoordinates();
+                popup.setPosition(coordinates);
 
-        <h1>SIG Nomades : Mini-projet 2023</h1>
+                // Récupérer les propriétés de l'entité
+                var properties = feature.getProperties();
 
-        <div id="map"></div>
+                // Créer le contenu du popup
+                var content = 'Nom : ' + properties.nom + '<br>' +
+                    'Composante : ' + properties.composante + '<br>' +
+                    'Adresse : ' + properties.adresse;
 
-        <form id="poiForm">
-            <h2>Ajouter un point d'intérêt</h2>
-        
-            <label for="name">Nom :</label>
-            <input type="text" id="name" name="name" required>
-        
-            <label for="component">Composante :</label>
-            <input type="text" id="component" name="component" required>
-        
-            <label for="address">Adresse :</label>
-            <input type="text" id="address" name="address" required>
-        
-            <label for="gps">Coordonnées GPS :</label>
-            <input type="text" id="gps" name="gps" placeholder="Longitude, Latitude," required>
-        
-            <label for="campus">Campus :</label>
-            <select id="campus" name="campus" required></select>
-        
-            <input type="submit" value="Ajouter">
-        </form>
+                // Mettre à jour le contenu du popup
+                element.innerHTML = content;
 
-        <script>
-            var geoserver='http://localhost:8080/geoserver/cite/wms'
+                // Réduire la carte et afficher le formulaire
+                mapContainer.style.flexGrow = '0';
+                formContainer.style.flexGrow = '1';
+                formContainer.style.display = 'block';
+                formAdd.style.display = 'none';
+                formMerge.style.display = 'block';
 
-    
+            } else {
+                element.innerHTML = '';
+                popup.setPosition(undefined);
+            }
+        });
 
-    var osm = new ol.layer.Tile({
-        source: new ol.source.OSM()
-    });
+    </script>
+</body>
 
-    const vectorSource = new Vector({
-  format: new GeoJSON(),
-  loader: function(extent, resolution, projection, success, failure) {
-     const proj = projection.getCode();
-     const url =  "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite%3Apointinteret&maxFeatures=50&outputFormat=application%2Fjson",
-     const xhr = new XMLHttpRequest();
-     xhr.open('GET', url);
-     const onError = function() {
-       vectorSource.removeLoadedExtent(extent);
-       failure();
-     }
-     xhr.onerror = onError;
-     xhr.onload = function() {
-       if (xhr.status == 200) {
-         const features = vectorSource.getFormat().readFeatures(xhr.responseText);
-         vectorSource.addFeatures(features);
-         success(features);
-       } else {
-         onError();
-       }
-     }
-     xhr.send();
-   },
-   strategy: bbox,
- });
-
-var pointinteret = new ol.layer.Vector({
-    source: vectorSource,
-    style: new ol.style.Style({
-        image: new ol.style.Circle({
-            radius: 5,
-            fill: new ol.style.Fill({color: 'yellow'}),
-            stroke: new ol.style.Stroke({color: 'red', width: 1})
-        })
-    })
-});
-
-            var map = new ol.Map({
-                
-                target: 'map',
-                extent: ol.proj.transformExtent([1.8, 47.8, 2.0, 48.0],'EPSG:4326','EPSG:3857'),
-                layers: [osm,
-                    pointinteret],
-                view: new ol.View({
-                    center: ol.proj.fromLonLat([1.934126, 47.843909]), // Coordinates for Orléans
-                    zoom: 16 // Increase the zoom level
-                }),
-                interactions: ol.interaction.defaults({doubleClickZoom: false})
-            });
-
-            
-
-            var form = document.getElementById('poiForm');
-    var gpsInput = document.getElementById('gps');
-    var compteur = 0;
-        
-            map.on('dblclick', function(evt) {
-
-                fetch('/getAllCampus')
-        .then(response => response.json())
-        .then(data => {
-            // Get the select element
-            var select = document.getElementById('campus');
-
-            // Create an option element for each campus
-            data.forEach(campus => {
-                var option = document.createElement('option');
-                option.value = campus.idcampus;
-                option.text = campus.ville;
-                select.add(option);
-            });
-        })
-        .catch(error => console.error('Error:', error));
-
-
-        var coordinate = ol.proj.toLonLat(evt.coordinate);
-        gpsInput.value = coordinate.join(', ');
-        gpsInput.readOnly = true;
-        if(compteur%2==0){
-            form.style.display = 'block';
-            compteur++;
-        }
-        else{
-            form.style.display = 'none';
-            compteur++;
-        }
-    });
-
-    document.getElementById('poiForm').addEventListener('submit', function(event) {
-    // Prevent the form from being submitted normally
-    event.preventDefault();
-
-    // Get the form data
-    var name = document.getElementById('name').value;
-    var component = document.getElementById('component').value;
-    var address = document.getElementById('address').value;
-    var gps = document.getElementById('gps').value;
-    var campus = document.getElementById('campus').value;
-
-    // Split the gps string into latitude and longitude
-    var gpsParts = gps.split(',');
-
-    // Create the data object
-    var data = {
-        campus: campus,
-        component: component,
-        name: name,
-        address: address,
-        gps: {
-            longitude: parseFloat(gpsParts[0]),
-            lattitude: parseFloat(gpsParts[1])
-        }
-    };
-    
-    console.log(data);
-
-    // Send the data to the server
-    fetch('ajouterPI', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-    console.log(data);
-    pointinteret.getSource().refresh();
-})
-    .catch(error => console.error('Error:', error));
-});
-        </script>
-    </body>
 </html>
