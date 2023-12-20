@@ -91,7 +91,7 @@ app.get('/getTypes', async (req, res) => {
 });
 
 app.get('/getCampus', async (req, res) => {
-    const query = 'SELECT * FROM campus';
+    const query = 'SELECT DISTINCT ville FROM campus';
     const result = await executeQuery(query);
     res.json(result);
     console.log(result);
@@ -134,7 +134,7 @@ app.post('/filtrer', async (req, res) => {
     var whereClauses = [];
     if (data.nomaff) whereClauses.push(`pt.nom = '${data.nomaff}'`);
     if (data.serviceaff) whereClauses.push(`s.nom = '${data.serviceaff}'`);
-    if (data.campusaff) whereClauses.push(`c.idcampus = '${data.campusaff}'`);
+    if (data.campusaff) whereClauses.push(`c.ville = '${data.campusaff}'`);
     if (data.typeaff) whereClauses.push(`pub.type = '${data.typeaff}'`);
     if (data.matiereaff) whereClauses.push(`pub.nom = '${data.matiereaff}'`);
 

@@ -20,6 +20,18 @@
             color: #333;
         }
 
+        body {
+            background-color: #023535; /* Change background color */
+            color: white; /* White text */
+            font-family: Arial, sans-serif; /* Modern font */
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: bold; /* Bold titles */
+            text-transform: uppercase; /* Uppercase titles */
+            text-align: center; /* Centered titles */
+        }
+
         h1,
         h2,
         h3,
@@ -31,6 +43,15 @@
             font-size: 2.5em;
             margin-top: 20px;
             /* Adjust as needed */
+        }
+
+         /* Add this rule to make the titles in your form blue */
+         form h1, form h2, form h3, form h4, form h5, form h6 {
+            color: white;
+        }
+
+        form label {
+            color: white;
         }
 
         h2 {
@@ -53,7 +74,7 @@
         #poiFormAdd {
             display: none;
             font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
+            background-color: #015958;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
@@ -120,7 +141,7 @@
         #poiFormMerge {
             display: none;
             font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
+            background-color: #015958;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
@@ -163,17 +184,27 @@
         }
 
         .popup {
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    width: auto;
-    max-width: 90vw;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    color: #333;
-}
+            background-color: #008F8C;
+            border: 1px solid #ccc;
+            color: white;
+            border-radius: 5px;
+            padding: 10px;
+            width: auto;
+            max-width: 90vw;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        /* Add this rule to make the labels in your affPI form white */
+        #affPI label {
+            color: white;
+        }
+
+        /* Add this rule to make the specific h2 title white */
+        #affPI h2 {
+            color: white;
+        }
     </style>
 
     <script src="https://openlayers.org/en/v6.5.0/build/ol.js"></script>
@@ -270,6 +301,8 @@
 
                 var select = document.getElementById('serviceaff');
 
+                removeOptions(select);
+
                 var none = document.createElement('option');
                 none.value = "";
                 none.text = "";
@@ -290,6 +323,8 @@
 
                 var select = document.getElementById('nomaff');
 
+                removeOptions(select);
+
                 var none = document.createElement('option');
                 none.value = "";
                 none.text = "";
@@ -309,6 +344,7 @@
             .then(data => {
 
                 var select = document.getElementById('campusaff');
+                removeOptions(select);
 
                 var none = document.createElement('option');
                 none.value = "";
@@ -317,7 +353,7 @@
 
                 data.forEach(campusaff => {
                     var option = document.createElement('option');
-                    option.value = campusaff.idcampus;
+                    option.value = campusaff.ville;
                     option.text = campusaff.ville;
                     select.add(option);
                 });
@@ -329,6 +365,7 @@
             .then(data => {
 
                 var select = document.getElementById('typeaff');
+                removeOptions(select);
 
                 var none = document.createElement('option');
                 none.value = "";
@@ -347,60 +384,71 @@
 
         var geoserver = 'http://localhost:8080/geoserver/cite/wms'
 
+        var vectorLayer;
+
+        var options = {
+            nomaff: "",
+            serviceaff: "",
+            campusaff: "",
+            typeaff: "",
+            matiereaff: ""
+        };
+
+        fetch(`/filtrer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(options)
+        })
+            .then(response => response.json())
+            .then(data => {
+                var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (";
+                data.forEach(idpoint => {
+                    url += idpoint.idpoint + ",";
+                });
+                url = url.slice(0, -1);
+                url += ")";
+                console.log(url);
+
+                // Create a new vector source
+                var vectorSource = new ol.source.Vector({
+                    format: new ol.format.GeoJSON(),
+                    url: url
+                });
+
+                // Create a new vector layer
+                vectorLayer = new ol.layer.Vector({
+                    source: vectorSource,
+                    style: new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: 10,
+                            fill: new ol.style.Fill({
+                                color: 'rgba(255, 0, 0, 0.8)' // semi-transparent red
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: 'rgba(0, 0, 0, 0.8)',
+                                width: 3
+                            })
+                        })
+                    })
+                });
+
+                // Add the vector layer to the map
+                map.addLayer(vectorLayer);
+            })
+            .catch(error => console.error('Error:', error));
+
+
         var osm = new ol.layer.Tile({
             source: new ol.source.OSM()
-        });
-
-        const vectorSource = new ol.source.Vector({
-            format: new ol.format.GeoJSON(),
-            loader: function (extent, resolution, projection, success, failure) {
-                const proj = projection.getCode();
-                const url = "http://localhost:8080/geoserver/cite/" + 'ows?service=WFS' +
-                    '&version=1.0.0&request=GetFeature&typeName=cite:pointinteret' +
-                    '&maxFeatures=50&outputFormat=application/json' +
-                    '&srsname=' + proj +
-                    '&bbox=' + extent.join(',') + ',' + proj
-                    ;
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                const onError = function () {
-                    vectorSource.removeLoadedExtent(extent);
-                    failure();
-                }
-                xhr.onerror = onError;
-                xhr.onload = function () {
-                    if (xhr.status == 200) {
-                        const features = vectorSource.getFormat().readFeatures(xhr.responseText);
-                        vectorSource.addFeatures(features);
-                        success(features);
-                    } else {
-                        onError();
-                    }
-                }
-                xhr.send();
-            },
-            strategy: ol.loadingstrategy.bbox,
-
-        });
-
-        var pointinteret = new ol.layer.Vector({
-            source: vectorSource,
-            style: new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: 20,
-                    fill: new ol.style.Fill({ color: 'yellow' }),
-                    stroke: new ol.style.Stroke({ color: 'red', width: 1 })
-                })
-            })
-
         });
 
         var map = new ol.Map({
 
             target: 'map',
             extent: ol.proj.transformExtent([1.8, 47.8, 2.0, 48.0], 'EPSG:4326', 'EPSG:3857'),
-            layers: [osm,
-                pointinteret],
+            layers: [osm],
             view: new ol.View({
                 center: ol.proj.fromLonLat([1.934126, 47.843909]),
                 zoom: 16
@@ -430,6 +478,7 @@
                 .then(data => {
 
                     var select = document.getElementById('campus');
+                    removeOptions(select);
 
                     data.forEach(campus => {
                         var option = document.createElement('option');
@@ -496,7 +545,29 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);
-                    pointinteret.getSource().refresh();
+                    vectorLayer.getSource().refresh();
+
+                    fetch('/getPI')
+                        .then(response => response.json())
+                        .then(data => {
+
+                            var select = document.getElementById('nomaff');
+
+                            removeOptions(select);
+
+                            var none = document.createElement('option');
+                            none.value = "";
+                            none.text = "";
+                            select.add(none, select[0]);
+
+                            data.forEach(nomaff => {
+                                var option = document.createElement('option');
+                                option.value = nomaff.nom;
+                                option.text = nomaff.nom;
+                                select.add(option);
+                            });
+                        })
+                        .catch(error => console.error('Error:', error));
                 })
                 .catch(error => console.error('Error:', error));
         });
@@ -510,7 +581,6 @@
             var address = document.getElementById('address').value;
             var gps = document.getElementById('gps').value;
             var campus = document.getElementById('campus').value;
-
 
             var gpsParts = gps.split(',');
 
@@ -537,7 +607,87 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);
-                    pointinteret.getSource().refresh();
+
+                    var options = {
+                        nomaff: "",
+                        serviceaff: "",
+                        campusaff: "",
+                        typeaff: "",
+                        matiereaff: ""
+                    };
+
+                    fetch('/getPI')
+                        .then(response => response.json())
+                        .then(data => {
+
+                            var select = document.getElementById('nomaff');
+
+                            removeOptions(select);
+
+                            var none = document.createElement('option');
+                            none.value = "";
+                            none.text = "";
+                            select.add(none, select[0]);
+
+                            data.forEach(nomaff => {
+                                var option = document.createElement('option');
+                                option.value = nomaff.nom;
+                                option.text = nomaff.nom;
+                                select.add(option);
+                            });
+                        })
+                        .catch(error => console.error('Error:', error));
+
+                    fetch(`/filtrer`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(options)
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (";
+                            data.forEach(idpoint => {
+                                url += idpoint.idpoint + ",";
+                            });
+                            url = url.slice(0, -1);
+                            url += ")";
+                            console.log(url);
+
+                            // Create a new vector source
+                            var vectorSource = new ol.source.Vector({
+                                format: new ol.format.GeoJSON(),
+                                url: url
+                            });
+
+                            // Create a new vector layer
+                            vectorLayer = new ol.layer.Vector({
+                                source: vectorSource,
+                                style: new ol.style.Style({
+                                    image: new ol.style.Circle({
+                                        radius: 10,
+                                        fill: new ol.style.Fill({
+                                            color: 'rgba(255, 0, 0, 0.8)' // semi-transparent red
+                                        }),
+                                        stroke: new ol.style.Stroke({
+                                            color: 'rgba(0, 0, 0, 0.8)',
+                                            width: 3
+                                        })
+                                    })
+                                })
+
+                            });
+
+                            // Add the vector layer to the map
+                            map.addLayer(vectorLayer);
+
+                            vectorLayer.getSource().refresh();
+
+                        })
+                        .catch(error => console.error('Error:', error));
+
+
                 })
                 .catch(error => console.error('Error:', error));
 
@@ -569,30 +719,55 @@
                 .then(response => response.json())
                 .then(data => {
                     var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (";
-                    data.forEach(idpoint => {
-                            url+=idpoint.idpoint+",";
+                    if (Object.keys(data).length >= 1) {
+                        data.forEach(idpoint => {
+                            url += idpoint.idpoint + ",";
                         });
-                    url = url.slice(0, -1);
-                    url+=")";
+                        url = url.slice(0, -1);
+                        url += ")";
+                    }
+                    else {
+                        url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (-1)";
+                    }
+
                     console.log(url);
 
-                     // Create a new vector source
-            var vectorSource = new ol.source.Vector({
-                format: new ol.format.GeoJSON(),
-                url: url
-            });
+                    // Create a new vector source
+                    var vectorSource = new ol.source.Vector({
+                        format: new ol.format.GeoJSON(),
+                        url: url
+                    });
 
-            // Create a new vector layer
-            var vectorLayer = new ol.layer.Vector({
-                source: vectorSource
-            });
+                    // Remove the old layer if it exists
+                    if (vectorLayer) {
+                        map.removeLayer(vectorLayer);
+                    }
 
-            // Add the vector layer to the map
-            map.addLayer(vectorLayer);
+                    // Create a new vector layer
+                    vectorLayer = new ol.layer.Vector({
+                        source: vectorSource,
+                        style: new ol.style.Style({
+                            image: new ol.style.Circle({
+                                radius: 10,
+                                fill: new ol.style.Fill({
+                                    color: 'rgba(255, 0, 0, 0.8)' // semi-transparent red
+                                }),
+                                stroke: new ol.style.Stroke({
+                                    color: 'rgba(0, 0, 0, 0.8)',
+                                    width: 3
+                                })
+                            })
+                        })
+                    });
+
+                    // Add the vector layer to the map
+                    map.addLayer(vectorLayer);
+
+                    vectorLayer.getSource().refresh();
                 })
                 .catch(error => console.error('Error:', error));
 
-            
+
         });
 
         // Créer un élément pour la popup
@@ -635,6 +810,8 @@
 
                         var select = document.getElementById('campusmerge');
 
+                        removeOptions(select);
+
                         data.forEach(campus => {
                             var option = document.createElement('option');
                             option.value = campus.idcampus;
@@ -667,7 +844,7 @@
 
                         // Add the list of services to the content
                         data.forEach(service => {
-                            content += "-"+service.nom + "<br>";
+                            content += "-" + service.nom + "<br>";
                         });
 
                         content += "</b>";
