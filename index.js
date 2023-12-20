@@ -18,7 +18,6 @@ app.use(express.json());
 
 
 async function executeQuery(query) {
-    console.log('Executing query:', query);
 
     const client = new Client({
         host: 'localhost',
@@ -34,14 +33,11 @@ async function executeQuery(query) {
 
     client.end();
 
-    console.log('Query result:', dbRes.rows);
-
     return dbRes.rows;
 }
 
 app.post('/ajouterPI', async (req, res) => {
     const data = req.body;
-    console.log(data);
     const query = `INSERT INTO public.pointinteret(moncampus, composante, nom, adresse, position) VALUES ('${data.campus}','${data.component}', '${data.name}','${data.address}' , ST_SetSRID(ST_Point(${data.gps.longitude}, ${data.gps.lattitude}),4326))`;
     const result = await executeQuery(query);
     res.json(result);
@@ -49,7 +45,6 @@ app.post('/ajouterPI', async (req, res) => {
 
 app.post('/modifierPI', async (req, res) => {
     const data = req.body;
-    console.log(data);
     const query = `UPDATE public.pointinteret SET moncampus='${data.campus}', composante='${data.component}', nom='${data.name}', adresse='${data.address}', "position"=ST_SetSRID(ST_Point(${data.gps.longitude}, ${data.gps.lattitude}),4326) WHERE idpoint='${data.id}';`
     const result = await executeQuery(query);
     res.json(result);
@@ -59,42 +54,36 @@ app.get('/getAllCampus', async (req, res) => {
     const query = 'SELECT * FROM public.campus';
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.get('/insert', async (req, res) => {
     const query = "INSERT INTO public.campus(ville) VALUES ('Chateaudun');";
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.get('/getPI', async (req, res) => {
     const query = 'SELECT * FROM pointinteret';
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.get('/getServices', async (req, res) => {
     const query = 'SELECT * FROM service';
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.get('/getTypes', async (req, res) => {
     const query = 'SELECT DISTINCT type FROM public ';
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.get('/getCampus', async (req, res) => {
     const query = 'SELECT DISTINCT ville FROM campus';
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.get('/getMatieres', async (req, res) => {
@@ -102,7 +91,6 @@ app.get('/getMatieres', async (req, res) => {
     const query = `SELECT DISTINCT nom FROM public WHERE type='${type}'`;
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.get('/getServiceByPI', async (req, res) => {
@@ -110,7 +98,6 @@ app.get('/getServiceByPI', async (req, res) => {
     const query = `SELECT * FROM service WHERE monpoint='${id}'`;
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.get('/', (req, res) => {
@@ -120,7 +107,6 @@ app.get('/', (req, res) => {
 
 app.post('/filtrer', async (req, res) => {
     const data = req.body;
-    console.log(data);
 
     var baseQuery = `
     SELECT DISTINCT pt.idpoint
@@ -145,7 +131,6 @@ app.post('/filtrer', async (req, res) => {
 
     const result = await executeQuery(query);
     res.json(result);
-    console.log(result);
 });
 
 app.listen(3000, () => {

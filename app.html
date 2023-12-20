@@ -194,6 +194,12 @@
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             font-family: Arial, sans-serif;
             font-size: 14px;
+            border: 1px solid black;
+        }
+
+        .popup h1 {
+            margin-top: 3px;
+            border-bottom: 2px;
         }
 
         /* Add this rule to make the labels in your affPI form white */
@@ -204,6 +210,22 @@
         /* Add this rule to make the specific h2 title white */
         #affPI h2 {
             color: white;
+        }
+
+        #affPI label {
+            font-weight: bold;
+        }
+
+        /* Styles pour les écrans de taille moyenne et grande */
+        #map, #poiFormAdd, #poiFormMerge {
+            height: 700px;
+        }
+
+        /* Styles pour les écrans de petite taille (moins de 600px) */
+        @media (max-width: 600px) {
+            #map, #poiFormAdd, #poiFormMerge {
+                height: 300px;
+            }
         }
     </style>
 
@@ -234,6 +256,8 @@
         <select id="matiereaff" name="matiereaff"></select>
 
         <input type="submit" value="Filtrer">
+        <input type="submit" value=".CSV">
+        <input type="submit" value=".GEOJSON">
     </form>
 
     <div id="container">
@@ -409,7 +433,6 @@
                 });
                 url = url.slice(0, -1);
                 url += ")";
-                console.log(url);
 
                 // Create a new vector source
                 var vectorSource = new ol.source.Vector({
@@ -533,8 +556,6 @@
                 }
             };
 
-            console.log(data);
-
             fetch('modifierPI', {
                 method: 'POST',
                 headers: {
@@ -544,7 +565,6 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
                     vectorLayer.getSource().refresh();
 
                     fetch('/getPI')
@@ -595,8 +615,6 @@
                 }
             };
 
-            console.log(data);
-
             fetch('ajouterPI', {
                 method: 'POST',
                 headers: {
@@ -606,7 +624,6 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
 
                     var options = {
                         nomaff: "",
@@ -653,7 +670,6 @@
                             });
                             url = url.slice(0, -1);
                             url += ")";
-                            console.log(url);
 
                             // Create a new vector source
                             var vectorSource = new ol.source.Vector({
@@ -729,8 +745,6 @@
                     else {
                         url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (-1)";
                     }
-
-                    console.log(url);
 
                     // Create a new vector source
                     var vectorSource = new ol.source.Vector({
@@ -851,9 +865,6 @@
 
                         // Mettre à jour le contenu du popup
                         element.innerHTML = content;
-
-                        // Now you can use the content variable
-                        console.log(content);
                     })
                     .catch(error => console.error('Error:', error));
 
