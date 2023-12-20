@@ -210,14 +210,25 @@
             <form id="poiFormMerge">
                 <h2>Modifier un point d'intérêt</h2>
 
-                <label for="name">Nom :</label>
-                <input type="text" id="name" name="name" required>
+                <input type="text" id="idmerge" name="idmerge" hidden required>
 
-                <label for="gps">Coordonnées GPS :</label>
-                <input type="text" id="gps" name="gps" placeholder="Longitude, Latitude," required>
+                <label for="name">Nom :</label>
+                <input type="text" id="namemerge" name="namemerge" required>
+
+                <label for="componentmerge">Composante :</label>
+                <input type="text" id="componentmerge" name="componentmerge" required>
+
+                <label for="addressmerge">Adresse :</label>
+                <input type="text" id="addressmerge" name="addressmerge" required>
+
+                <label for="gpsmerge">Coordonnées GPS :</label>
+                <input type="text" id="gpsmerge" name="gpsmerge" placeholder="Longitude, Latitude," required>
+
+                <label for="campusmerge">Campus :</label>
+                <select id="campusmerge" name="campusmerge" required></select>
 
                 <input type="submit" value="Modifier">
-                <input type="button" id="button" value="Fermer">
+                <input type="button" id="buttonmerge" value="Fermer">
 
             </form>
         </div>
@@ -291,6 +302,7 @@
         var formAdd = document.getElementById('poiFormAdd');
         var formMerge = document.getElementById('poiFormMerge');
         var gpsInput = document.getElementById('gps');
+        var gpsMerge = document.getElementById('gpsmerge');
 
         map.on('dblclick', function (evt) {
 
@@ -329,6 +341,55 @@
             mapContainer.style.flexGrow = '1';
             formContainer.style.flexGrow = '0';
             formContainer.style.display = 'none';
+        });
+
+        document.getElementById('buttonmerge').addEventListener("click",function (event) {
+            event.preventDefault();
+            mapContainer.style.flexGrow = '1';
+            formContainer.style.flexGrow = '0';
+            formContainer.style.display = 'none';
+        });
+
+        document.getElementById('poiFormMerge').addEventListener('submit', function (event) {
+
+            event.preventDefault();
+
+            var name = document.getElementById('namemerge').value;
+            var component = document.getElementById('componentmerge').value;
+            var address = document.getElementById('addressmerge').value;
+            var gpsmerge = document.getElementById('gpsmerge').value;
+            var campus = document.getElementById('campusmerge').value;
+            var idmerge = document.getElementById('idmerge').value;
+
+            var gpsParts = gpsmerge.split(',');
+
+            var data = {
+                id: idmerge,
+                campus: campus,
+                component: component,
+                name: name,
+                address: address,
+                gps: {
+                    longitude: parseFloat(gpsParts[0]),
+                    lattitude: parseFloat(gpsParts[1])
+                }
+            };
+
+            console.log(data);
+
+            fetch('modifierPI', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    pointinteret.getSource().refresh();
+                })
+                .catch(error => console.error('Error:', error));
         });
 
         document.getElementById('poiFormAdd').addEventListener('submit', function (event) {
@@ -407,6 +468,21 @@
 
             if (feature) {
 
+                fetch('/getAllCampus')
+                .then(response => response.json())
+                .then(data => {
+
+                    var select = document.getElementById('campusmerge');
+
+                    data.forEach(campus => {
+                        var option = document.createElement('option');
+                        option.value = campus.idcampus;
+                        option.text = campus.ville;
+                        select.add(option);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+
                 var coordinates = feature.getGeometry().getCoordinates();
                 popup.setPosition(coordinates);
 
@@ -418,6 +494,16 @@
                     'Composante : ' + properties.composante + '<br>' +
                     'Adresse : ' + properties.adresse;
 
+                var namemerge = document.getElementById("namemerge");
+                var componentmerge = document.getElementById("componentmerge");
+                var addressmerge = document.getElementById("addressmerge");
+                var idmerge = document.getElementById("idmerge");
+
+                namemerge.value = properties.nom;
+                componentmerge.value = properties.composante;
+                addressmerge.value = properties.adresse;
+                idmerge.value = feature.getId().split(".")[1];
+                
                 // Mettre à jour le contenu du popup
                 element.innerHTML = content;
 
@@ -429,6 +515,9 @@
                 formMerge.style.display = 'block';
 
             } else {
+                var coordinate = ol.proj.toLonLat(evt.coordinate);
+                gpsMerge.value = coordinate.join(', ');
+                gpsMerge.readOnly = true;
                 element.innerHTML = '';
                 popup.setPosition(undefined);
             }

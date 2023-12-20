@@ -47,6 +47,14 @@ app.post('/ajouterPI', async (req, res) => {
     res.json(result);
 });
 
+app.post('/modifierPI', async (req, res) => {
+    const data = req.body;
+    console.log(data);
+    const query = `UPDATE public.pointinteret SET moncampus='${data.campus}', composante='${data.component}', nom='${data.name}', adresse='${data.address}', "position"=ST_SetSRID(ST_Point(${data.gps.longitude}, ${data.gps.lattitude}),4326) WHERE idpoint='${data.id}';`
+    const result = await executeQuery(query);
+    res.json(result);
+});
+
 app.get('/getAllCampus', async (req, res) => {
     const query = 'SELECT * FROM public.campus';
     const result = await executeQuery(query);
