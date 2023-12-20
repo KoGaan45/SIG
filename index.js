@@ -1,8 +1,21 @@
 const express = require('express');
 const { Client } = require('pg');
 const fs = require('fs');
+
+/* 
+const cors = require('cors');
+
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+app.use('/geoserver', createProxyMiddleware({ target: 'http://localhost:8080', changeOrigin: true }));
+app.use(cors());
+
+*/
+
 const app = express();
+
 app.use(express.json());
+
 
 async function executeQuery(query) {
     console.log('Executing query:', query);
@@ -29,7 +42,7 @@ async function executeQuery(query) {
 app.post('/ajouterPI', async (req, res) => {
     const data = req.body;
     console.log(data);
-    const query = `INSERT INTO public.pointinteret(moncampus, composante, nom, adresse, position) VALUES ('${data.campus}','${data.component}', '${data.name}','${data.address}' , ST_SetSRID(ST_Point(${data.gps.longitude}, ${data.gps.latitude}),3857))`;
+    const query = `INSERT INTO public.pointinteret(moncampus, composante, nom, adresse, position) VALUES ('${data.campus}','${data.component}', '${data.name}','${data.address}' , ST_SetSRID(ST_Point(${data.gps.longitude}, ${data.gps.lattitude}),4326))`;
     const result = await executeQuery(query);
     res.json(result);
 });
@@ -76,3 +89,4 @@ if (isMobile) {
 } else {
     console.log('L\'utilisateur est sur un ordinateur');
 }
+
