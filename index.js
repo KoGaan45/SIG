@@ -133,6 +133,36 @@ app.post('/filtrer', async (req, res) => {
     res.json(result);
 });
 
+
+app.post('/getServices', async (req, res) => {
+    const data = req.body;
+
+    var baseQuery = `
+    SELECT DISTINCT s.nom, s.descriptif 
+    FROM pointinteret AS pt
+    LEFT JOIN service AS s ON s.monpoint = pt.idpoint
+    RIGHT JOIN public_service as ps ON s.idservice = ps.service_idservice
+    LEFT JOIN public AS pub ON pub.idpublic = ps.public_idpublic
+    LEFT JOIN campus AS c ON c.idcampus=pt.moncampus
+    `;
+
+    var whereClauses = [];
+    if (data.nomaff) whereClauses.push(`pt.nom = '${data.nomaff}'`);
+    if (data.serviceaff) whereClauses.push(`s.nom = '${data.serviceaff}'`);
+    if (data.campusaff) whereClauses.push(`c.ville = '${data.campusaff}'`);
+    if (data.typeaff) whereClauses.push(`pub.type = '${data.typeaff}'`);
+    if (data.matiereaff) whereClauses.push(`pub.nom = '${data.matiereaff}'`);
+
+    var query = baseQuery;
+    if (whereClauses.length) {
+        query += ' WHERE ' + whereClauses.join(' AND ');
+    }
+
+    const result = await executeQuery(query);
+    res.json(result);
+});
+
+
 app.listen(3000, () => {
     console.log('App is running on port 3000');
 });

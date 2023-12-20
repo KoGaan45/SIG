@@ -226,6 +226,10 @@
             #map, #poiFormAdd, #poiFormMerge {
                 height: 300px;
             }
+
+            .container {
+                flex-direction: column;
+            }
         }
     </style>
 
@@ -418,6 +422,8 @@
             matiereaff: ""
         };
 
+        
+        
         fetch(`/filtrer`, {
             method: 'POST',
             headers: {
