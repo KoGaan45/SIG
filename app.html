@@ -47,28 +47,11 @@
 
         #map {
             width: 1200px;
-            height: 600px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
         }
 
-        #popup {
-            position: absolute;
-            min-width: 60px;
-            /* Largeur minimale du popup */
-            max-width: none;
-            /* Aucune largeur maximale */
-            width: auto;
-            /* La largeur s'adapte automatiquement à la quantité de texte */
-            height: auto;
-            /* La hauteur s'adapte automatiquement à la quantité de texte */
-            padding: 2px;
-            background: white;
-            border: 1px solid #ccc;
-            pointer-events: none;
-        }
-
         #poiFormAdd {
-            display : none;
+            display: none;
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
             padding: 20px;
@@ -135,7 +118,7 @@
         }
 
         #poiFormMerge {
-            display : none;
+            display: none;
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
             padding: 20px;
@@ -171,6 +154,26 @@
         #poiFormMerge button:hover {
             background-color: #0056b3;
         }
+
+        #map,
+        #poiFormAdd,
+        #poiFormMerge {
+            height: 700px;
+            /* Remplacez 500px par la hauteur souhaitée */
+        }
+
+        .popup {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    width: auto;
+    max-width: 90vw;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #333;
+}
     </style>
 
     <script src="https://openlayers.org/en/v6.5.0/build/ol.js"></script>
@@ -180,6 +183,27 @@
 <body>
 
     <h1>SIG Nomades : Mini-projet 2023</h1>
+
+    <form id="affPI">
+        <h2>Que voulez-vous afficher ?</h2>
+
+        <label for="nomaff">Nom :</label>
+        <select id="nomaff" name="nomaff"></select>
+
+        <label for="serviceaff">Services :</label>
+        <select id="serviceaff" name="serviceaff"></select>
+
+        <label for="campusaff">Campus :</label>
+        <select id="campusaff" name="campusaff"></select>
+
+        <label for="typeaff">Type :</label>
+        <select id="typeaff" name="typeaff"></select>
+
+        <label for="matiereaff">Matière :</label>
+        <select id="matiereaff" name="matiereaff"></select>
+
+        <input type="submit" value="Filtrer">
+    </form>
 
     <div id="container">
         <div id="mapContainer">
@@ -234,11 +258,93 @@
         </div>
     </div>
 
-    <div id="popup"></div>
+    <div id="popup" class="popup"></div>
 
 
 
     <script>
+
+        fetch('/getServices')
+            .then(response => response.json())
+            .then(data => {
+
+                var select = document.getElementById('serviceaff');
+
+                var none = document.createElement('option');
+                none.value = "";
+                none.text = "";
+                select.add(none, select[0]);
+
+                data.forEach(serviceaff => {
+                    var option = document.createElement('option');
+                    option.value = serviceaff.nom;
+                    option.text = serviceaff.nom;
+                    select.add(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+        fetch('/getPI')
+            .then(response => response.json())
+            .then(data => {
+
+                var select = document.getElementById('nomaff');
+
+                var none = document.createElement('option');
+                none.value = "";
+                none.text = "";
+                select.add(none, select[0]);
+
+                data.forEach(nomaff => {
+                    var option = document.createElement('option');
+                    option.value = nomaff.nom;
+                    option.text = nomaff.nom;
+                    select.add(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+        fetch('/getCampus')
+            .then(response => response.json())
+            .then(data => {
+
+                var select = document.getElementById('campusaff');
+
+                var none = document.createElement('option');
+                none.value = "";
+                none.text = "";
+                select.add(none, select[0]);
+
+                data.forEach(campusaff => {
+                    var option = document.createElement('option');
+                    option.value = campusaff.idcampus;
+                    option.text = campusaff.ville;
+                    select.add(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+        fetch('/getTypes')
+            .then(response => response.json())
+            .then(data => {
+
+                var select = document.getElementById('typeaff');
+
+                var none = document.createElement('option');
+                none.value = "";
+                none.text = "";
+                select.add(none, select[0]);
+
+                data.forEach(typeaff => {
+                    var option = document.createElement('option');
+                    option.value = typeaff.type;
+                    option.text = typeaff.type;
+                    select.add(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+
         var geoserver = 'http://localhost:8080/geoserver/cite/wms'
 
         var osm = new ol.layer.Tile({
@@ -253,7 +359,8 @@
                     '&version=1.0.0&request=GetFeature&typeName=cite:pointinteret' +
                     '&maxFeatures=50&outputFormat=application/json' +
                     '&srsname=' + proj +
-                    '&bbox=' + extent.join(',') + ',' + proj;
+                    '&bbox=' + extent.join(',') + ',' + proj
+                    ;
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url);
                 const onError = function () {
@@ -273,6 +380,7 @@
                 xhr.send();
             },
             strategy: ol.loadingstrategy.bbox,
+
         });
 
         var pointinteret = new ol.layer.Vector({
@@ -284,6 +392,7 @@
                     stroke: new ol.style.Stroke({ color: 'red', width: 1 })
                 })
             })
+
         });
 
         var map = new ol.Map({
@@ -336,14 +445,14 @@
             gpsInput.readOnly = true;
         });
 
-        document.getElementById('button').addEventListener("click",function (event) {
+        document.getElementById('button').addEventListener("click", function (event) {
             event.preventDefault();
             mapContainer.style.flexGrow = '1';
             formContainer.style.flexGrow = '0';
             formContainer.style.display = 'none';
         });
 
-        document.getElementById('buttonmerge').addEventListener("click",function (event) {
+        document.getElementById('buttonmerge').addEventListener("click", function (event) {
             event.preventDefault();
             mapContainer.style.flexGrow = '1';
             formContainer.style.flexGrow = '0';
@@ -431,8 +540,60 @@
                     pointinteret.getSource().refresh();
                 })
                 .catch(error => console.error('Error:', error));
+
+            mapContainer.style.flexGrow = '1';
+            formContainer.style.flexGrow = '0';
+            formContainer.style.display = 'none';
         });
 
+        document.getElementById('affPI').addEventListener('submit', function (event) {
+            // Prevent the form from submitting normally
+            event.preventDefault();
+
+            // Get the selected options
+            var options = {
+                nomaff: document.getElementById('nomaff').value,
+                serviceaff: document.getElementById('serviceaff').value,
+                campusaff: document.getElementById('campusaff').value,
+                typeaff: document.getElementById('typeaff').value,
+                matiereaff: document.getElementById('matiereaff').value
+            };
+
+            fetch(`/filtrer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(options)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (";
+                    data.forEach(idpoint => {
+                            url+=idpoint.idpoint+",";
+                        });
+                    url = url.slice(0, -1);
+                    url+=")";
+                    console.log(url);
+
+                     // Create a new vector source
+            var vectorSource = new ol.source.Vector({
+                format: new ol.format.GeoJSON(),
+                url: url
+            });
+
+            // Create a new vector layer
+            var vectorLayer = new ol.layer.Vector({
+                source: vectorSource
+            });
+
+            // Add the vector layer to the map
+            map.addLayer(vectorLayer);
+                })
+                .catch(error => console.error('Error:', error));
+
+            
+        });
 
         // Créer un élément pour la popup
         var element = document.getElementById('popup');
@@ -460,7 +621,7 @@
             var mapContainer = document.getElementById('mapContainer');
             var formContainer = document.getElementById('formContainer');
 
-            if(formContainer.style.display == "block") {
+            if (formContainer.style.display == "block") {
                 var coordinate = ol.proj.toLonLat(evt.coordinate);
                 gpsInput.value = coordinate.join(', ');
                 gpsInput.readOnly = true;
@@ -469,19 +630,19 @@
             if (feature) {
 
                 fetch('/getAllCampus')
-                .then(response => response.json())
-                .then(data => {
+                    .then(response => response.json())
+                    .then(data => {
 
-                    var select = document.getElementById('campusmerge');
+                        var select = document.getElementById('campusmerge');
 
-                    data.forEach(campus => {
-                        var option = document.createElement('option');
-                        option.value = campus.idcampus;
-                        option.text = campus.ville;
-                        select.add(option);
-                    });
-                })
-                .catch(error => console.error('Error:', error));
+                        data.forEach(campus => {
+                            var option = document.createElement('option');
+                            option.value = campus.idcampus;
+                            option.text = campus.ville;
+                            select.add(option);
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
 
                 var coordinates = feature.getGeometry().getCoordinates();
                 popup.setPosition(coordinates);
@@ -489,10 +650,35 @@
                 // Récupérer les propriétés de l'entité
                 var properties = feature.getProperties();
 
-                // Créer le contenu du popup
-                var content = 'Nom : ' + properties.nom + '<br>' +
-                    'Composante : ' + properties.composante + '<br>' +
-                    'Adresse : ' + properties.adresse;
+                var id = feature.getId().split(".")[1];
+
+                fetch(`/getServiceByPI?id=${encodeURIComponent(id)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Create the initial content
+                        var content = '<h1>Informations</h1> <b>Nom : </b>' + properties.nom + '<br>' +
+                            '<b>Composante : </b>' + properties.composante + '<br>' +
+                            '<b>Adresse : </b>' + properties.adresse + '<br> <b>Service : </b><br>';
+
+                        // Add the list of services to the content
+                        data.forEach(service => {
+                            content += "-"+service.nom + "<br>";
+                        });
+
+                        content += "</b>";
+
+                        // Mettre à jour le contenu du popup
+                        element.innerHTML = content;
+
+                        // Now you can use the content variable
+                        console.log(content);
+                    })
+                    .catch(error => console.error('Error:', error));
 
                 var namemerge = document.getElementById("namemerge");
                 var componentmerge = document.getElementById("componentmerge");
@@ -503,9 +689,6 @@
                 componentmerge.value = properties.composante;
                 addressmerge.value = properties.adresse;
                 idmerge.value = feature.getId().split(".")[1];
-                
-                // Mettre à jour le contenu du popup
-                element.innerHTML = content;
 
                 // Réduire la carte et afficher le formulaire
                 mapContainer.style.flexGrow = '0';
@@ -522,6 +705,47 @@
                 popup.setPosition(undefined);
             }
         });
+
+        var typeaff = document.getElementById("typeaff");
+        typeaff.addEventListener("change", function (event) {
+
+            var type = document.getElementById("typeaff").value;
+
+            fetch(`/getMatieres?type=${encodeURIComponent(type)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+
+                    var select = document.getElementById('matiereaff');
+
+                    removeOptions(select);
+
+                    var none = document.createElement('option');
+                    none.value = "";
+                    none.text = "";
+                    select.add(none, select[0]);
+
+                    data.forEach(matiereaff => {
+                        var option = document.createElement('option');
+                        option.value = matiereaff.nom;
+                        option.text = matiereaff.nom;
+                        select.add(option);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+
+        function removeOptions(selectElement) {
+            var i, L = selectElement.options.length - 1;
+            for (i = L; i >= 0; i--) {
+                selectElement.remove(i);
+            }
+        }
 
     </script>
 </body>
