@@ -21,15 +21,26 @@
         }
 
         body {
-            background-color: #023535; /* Change background color */
-            color: white; /* White text */
-            font-family: Arial, sans-serif; /* Modern font */
+            background-color: #023535;
+            /* Change background color */
+            color: white;
+            /* White text */
+            font-family: Arial, sans-serif;
+            /* Modern font */
         }
 
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: bold; /* Bold titles */
-            text-transform: uppercase; /* Uppercase titles */
-            text-align: center; /* Centered titles */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-weight: bold;
+            /* Bold titles */
+            text-transform: uppercase;
+            /* Uppercase titles */
+            text-align: center;
+            /* Centered titles */
         }
 
         h1,
@@ -45,8 +56,13 @@
             /* Adjust as needed */
         }
 
-         /* Add this rule to make the titles in your form blue */
-         form h1, form h2, form h3, form h4, form h5, form h6 {
+        /* Add this rule to make the titles in your form blue */
+        form h1,
+        form h2,
+        form h3,
+        form h4,
+        form h5,
+        form h6 {
             color: white;
         }
 
@@ -217,13 +233,18 @@
         }
 
         /* Styles pour les écrans de taille moyenne et grande */
-        #map, #poiFormAdd, #poiFormMerge {
+        #map,
+        #poiFormAdd,
+        #poiFormMerge {
             height: 700px;
         }
 
         /* Styles pour les écrans de petite taille (moins de 600px) */
         @media (max-width: 600px) {
-            #map, #poiFormAdd, #poiFormMerge {
+
+            #map,
+            #poiFormAdd,
+            #poiFormMerge {
                 height: 300px;
             }
 
@@ -423,7 +444,7 @@
         };
 
 
-        
+
         fetch(`/filtrer`, {
             method: 'POST',
             headers: {
@@ -731,135 +752,135 @@
                 matiereaff: document.getElementById('matiereaff').value
             };
             if (event.submitter.name === 'filtrer') {
-            fetch(`/filtrer`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(options)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (";
-                    if (Object.keys(data).length >= 1) {
-                        data.forEach(idpoint => {
-                            url += idpoint.idpoint + ",";
+                fetch(`/filtrer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(options)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (";
+                        if (Object.keys(data).length >= 1) {
+                            data.forEach(idpoint => {
+                                url += idpoint.idpoint + ",";
+                            });
+                            url = url.slice(0, -1);
+                            url += ")";
+                        }
+                        else {
+                            url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (-1)";
+                        }
+
+                        // Create a new vector source
+                        var vectorSource = new ol.source.Vector({
+                            format: new ol.format.GeoJSON(),
+                            url: url
                         });
-                        url = url.slice(0, -1);
-                        url += ")";
-                    }
-                    else {
-                        url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (-1)";
-                    }
 
-                    // Create a new vector source
-                    var vectorSource = new ol.source.Vector({
-                        format: new ol.format.GeoJSON(),
-                        url: url
-                    });
+                        // Remove the old layer if it exists
+                        if (vectorLayer) {
+                            map.removeLayer(vectorLayer);
+                        }
 
-                    // Remove the old layer if it exists
-                    if (vectorLayer) {
-                        map.removeLayer(vectorLayer);
-                    }
-
-                    // Create a new vector layer
-                    vectorLayer = new ol.layer.Vector({
-                        source: vectorSource,
-                        style: new ol.style.Style({
-                            image: new ol.style.Circle({
-                                radius: 10,
-                                fill: new ol.style.Fill({
-                                    color: 'rgba(255, 0, 0, 0.8)' // semi-transparent red
-                                }),
-                                stroke: new ol.style.Stroke({
-                                    color: 'rgba(0, 0, 0, 0.8)',
-                                    width: 3
+                        // Create a new vector layer
+                        vectorLayer = new ol.layer.Vector({
+                            source: vectorSource,
+                            style: new ol.style.Style({
+                                image: new ol.style.Circle({
+                                    radius: 10,
+                                    fill: new ol.style.Fill({
+                                        color: 'rgba(255, 0, 0, 0.8)' // semi-transparent red
+                                    }),
+                                    stroke: new ol.style.Stroke({
+                                        color: 'rgba(0, 0, 0, 0.8)',
+                                        width: 3
+                                    })
                                 })
                             })
-                        })
-                    });
-
-                    // Add the vector layer to the map
-                    map.addLayer(vectorLayer);
-
-                    vectorLayer.getSource().refresh();
-                })
-                .catch(error => console.error('Error:', error));
-            }else if (event.submitter.name === 'csv') {
-  fetch(`/getServices`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(options)
-  })
-    .then(response => response.json())
-    .then(data => {
-     
-      const csvContent = convertToCSV(data);
-
-      
-      const csvData = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
-
-     
-      window.location.href = csvData;
-    });
-}else if (event.submitter.name === 'geojson') {
-    fetch(`/getidServices`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(options)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite%3Aservice&maxFeatures=50&outputFormat=application%2Fjson&CQL_FILTER=idservice IN (";
-                    if (Object.keys(data).length >= 1) {
-                        data.forEach(idservice => {
-                            url += idservice.idservice + ",";
                         });
-                        url = url.slice(0, -1);
-                        url += ")";
-                    }
-                    
 
-                    // Create a new vector source
-                    window.open(url, '_blank');
+                        // Add the vector layer to the map
+                        map.addLayer(vectorLayer);
+
+                        vectorLayer.getSource().refresh();
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else if (event.submitter.name === 'csv') {
+                fetch(`/getServices`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(options)
                 })
+                    .then(response => response.json())
+                    .then(data => {
+
+                        const csvContent = convertToCSV(data);
 
 
-}
+                        const csvData = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+
+
+                        window.location.href = csvData;
+                    });
+            } else if (event.submitter.name === 'geojson') {
+                fetch(`/getidServices`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(options)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite%3Aservice&maxFeatures=50&outputFormat=application%2Fjson&CQL_FILTER=idservice IN (";
+                        if (Object.keys(data).length >= 1) {
+                            data.forEach(idservice => {
+                                url += idservice.idservice + ",";
+                            });
+                            url = url.slice(0, -1);
+                            url += ")";
+                        }
+
+
+                        // Create a new vector source
+                        window.open(url, '_blank');
+                    })
+
+
+            }
 
 
 
         });
-function convertToCSV(data) {
-  
-  const csvRows = [];
-  const headers = Object.keys(data[0]);
+        function convertToCSV(data) {
 
-  
-  csvRows.push(headers.join(','));
+            const csvRows = [];
+            const headers = Object.keys(data[0]);
 
-  
-  for (const row of data) {
-    const values = headers.map(header => {
-      const escapedValue = row[header].toString().replace(/"/g, '\\"');
-      return `"${escapedValue}"`;
-    });
-    csvRows.push(values.join(','));
-  }
 
-  
-  return csvRows.join('\n');
-}
+            csvRows.push(headers.join(','));
 
-        
+
+            for (const row of data) {
+                const values = headers.map(header => {
+                    const escapedValue = row[header].toString().replace(/"/g, '\\"');
+                    return `"${escapedValue}"`;
+                });
+                csvRows.push(values.join(','));
+            }
+
+
+            return csvRows.join('\n');
+        }
+
+
         var element = document.getElementById('popup');
 
-        
+
         var popup = new ol.Overlay({
             element: element,
             positioning: 'bottom-center',
