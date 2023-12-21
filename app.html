@@ -259,9 +259,9 @@
         <label for="matiereaff">Matière :</label>
         <select id="matiereaff" name="matiereaff"></select>
 
-        <input type="submit" value="Filtrer">
-        <input type="submit" value=".CSV">
-        <input type="submit" value=".GEOJSON">
+        <input type="submit" , name=filtrer , value="Filtrer">
+        <input type="submit" , name=csv , value=".CSV">
+        <input type="submit" , name=geojson value=".GEOJSON">
     </form>
 
     <div id="container">
@@ -422,7 +422,7 @@
             matiereaff: ""
         };
 
-        
+
         
         fetch(`/filtrer`, {
             method: 'POST',
@@ -721,7 +721,7 @@
         document.getElementById('affPI').addEventListener('submit', function (event) {
             // Prevent the form from submitting normally
             event.preventDefault();
-
+            console.log(event.submitter.name)
             // Get the selected options
             var options = {
                 nomaff: document.getElementById('nomaff').value,
@@ -730,7 +730,7 @@
                 typeaff: document.getElementById('typeaff').value,
                 matiereaff: document.getElementById('matiereaff').value
             };
-
+            if (event.submitter.name === 'filtrer') {
             fetch(`/filtrer`, {
                 method: 'POST',
                 headers: {
@@ -786,14 +786,80 @@
                     vectorLayer.getSource().refresh();
                 })
                 .catch(error => console.error('Error:', error));
+            }else if (event.submitter.name === 'csv') {
+  fetch(`/getServices`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(options)
+  })
+    .then(response => response.json())
+    .then(data => {
+     
+      const csvContent = convertToCSV(data);
+
+      
+      const csvData = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+
+     
+      window.location.href = csvData;
+    });
+}else if (event.submitter.name === 'geojson') {
+    fetch(`/getidServices`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(options)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    var url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite%3Aservice&maxFeatures=50&outputFormat=application%2Fjson&CQL_FILTER=idservice IN (";
+                    if (Object.keys(data).length >= 1) {
+                        data.forEach(idservice => {
+                            url += idservice.idservice + ",";
+                        });
+                        url = url.slice(0, -1);
+                        url += ")";
+                    }
+                    
+
+                    // Create a new vector source
+                    window.open(url, '_blank');
+                })
+
+
+}
+
 
 
         });
+function convertToCSV(data) {
+  
+  const csvRows = [];
+  const headers = Object.keys(data[0]);
 
-        // Créer un élément pour la popup
+  
+  csvRows.push(headers.join(','));
+
+  
+  for (const row of data) {
+    const values = headers.map(header => {
+      const escapedValue = row[header].toString().replace(/"/g, '\\"');
+      return `"${escapedValue}"`;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  
+  return csvRows.join('\n');
+}
+
+        
         var element = document.getElementById('popup');
 
-        // Créer une overlay pour la popup
+        
         var popup = new ol.Overlay({
             element: element,
             positioning: 'bottom-center',
