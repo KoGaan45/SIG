@@ -2,7 +2,8 @@ const express = require('express');
 const { Client } = require('pg');
 const fs = require('fs');
 
-/* 
+/* Tentative de contrer CORS mais ne fonctionne pas :
+
 const cors = require('cors');
 
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -15,7 +16,6 @@ app.use(cors());
 const app = express();
 
 app.use(express.json());
-
 
 async function executeQuery(query) {
 

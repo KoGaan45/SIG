@@ -9,6 +9,9 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <meta charset="UTF-8">
     <style>
+
+        /* CSS de la page */
+
         body {
             display: flex;
             flex-direction: column;
@@ -22,11 +25,8 @@
 
         body {
             background-color: #023535;
-            /* Change background color */
             color: white;
-            /* White text */
             font-family: Arial, sans-serif;
-            /* Modern font */
         }
 
         h1,
@@ -36,11 +36,8 @@
         h5,
         h6 {
             font-weight: bold;
-            /* Bold titles */
             text-transform: uppercase;
-            /* Uppercase titles */
             text-align: center;
-            /* Centered titles */
         }
 
         h1,
@@ -53,10 +50,8 @@
         h1 {
             font-size: 2.5em;
             margin-top: 20px;
-            /* Adjust as needed */
         }
 
-        /* Add this rule to make the titles in your form blue */
         form h1,
         form h2,
         form h3,
@@ -196,7 +191,6 @@
         #poiFormAdd,
         #poiFormMerge {
             height: 700px;
-            /* Remplacez 500px par la hauteur souhaitée */
         }
 
         .popup {
@@ -218,12 +212,10 @@
             border-bottom: 2px;
         }
 
-        /* Add this rule to make the labels in your affPI form white */
         #affPI label {
             color: white;
         }
 
-        /* Add this rule to make the specific h2 title white */
         #affPI h2 {
             color: white;
         }
@@ -232,14 +224,14 @@
             font-weight: bold;
         }
 
-        /* Styles pour les écrans de taille moyenne et grande */
         #map,
         #poiFormAdd,
         #poiFormMerge {
             height: 700px;
         }
 
-        /* Styles pour les écrans de petite taille (moins de 600px) */
+        /* Faire en sorte que ce soit responsive */
+
         @media (max-width: 600px) {
 
             #map,
@@ -339,8 +331,6 @@
     </div>
 
     <div id="popup" class="popup"></div>
-
-
 
     <script>
 
@@ -461,20 +451,18 @@
                 url = url.slice(0, -1);
                 url += ")";
 
-                // Create a new vector source
                 var vectorSource = new ol.source.Vector({
                     format: new ol.format.GeoJSON(),
                     url: url
                 });
 
-                // Create a new vector layer
                 vectorLayer = new ol.layer.Vector({
                     source: vectorSource,
                     style: new ol.style.Style({
                         image: new ol.style.Circle({
                             radius: 10,
                             fill: new ol.style.Fill({
-                                color: 'rgba(255, 0, 0, 0.8)' // semi-transparent red
+                                color: 'rgba(255, 0, 0, 0.8)'
                             }),
                             stroke: new ol.style.Stroke({
                                 color: 'rgba(0, 0, 0, 0.8)',
@@ -484,7 +472,6 @@
                     })
                 });
 
-                // Add the vector layer to the map
                 map.addLayer(vectorLayer);
             })
             .catch(error => console.error('Error:', error));
@@ -513,7 +500,6 @@
 
         map.on('dblclick', function (evt) {
 
-            // Réduire la carte et afficher le formulaire
             var mapContainer = document.getElementById('mapContainer');
             var formContainer = document.getElementById('formContainer');
 
@@ -698,20 +684,18 @@
                             url = url.slice(0, -1);
                             url += ")";
 
-                            // Create a new vector source
                             var vectorSource = new ol.source.Vector({
                                 format: new ol.format.GeoJSON(),
                                 url: url
                             });
 
-                            // Create a new vector layer
                             vectorLayer = new ol.layer.Vector({
                                 source: vectorSource,
                                 style: new ol.style.Style({
                                     image: new ol.style.Circle({
                                         radius: 10,
                                         fill: new ol.style.Fill({
-                                            color: 'rgba(255, 0, 0, 0.8)' // semi-transparent red
+                                            color: 'rgba(255, 0, 0, 0.8)'
                                         }),
                                         stroke: new ol.style.Stroke({
                                             color: 'rgba(0, 0, 0, 0.8)',
@@ -722,7 +706,6 @@
 
                             });
 
-                            // Add the vector layer to the map
                             map.addLayer(vectorLayer);
 
                             vectorLayer.getSource().refresh();
@@ -740,10 +723,8 @@
         });
 
         document.getElementById('affPI').addEventListener('submit', function (event) {
-            // Prevent the form from submitting normally
             event.preventDefault();
             console.log(event.submitter.name)
-            // Get the selected options
             var options = {
                 nomaff: document.getElementById('nomaff').value,
                 serviceaff: document.getElementById('serviceaff').value,
@@ -773,25 +754,22 @@
                             url = "http://localhost:8080/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:pointinteret&outputFormat=application%2Fjson&CQL_FILTER=idpoint IN (-1)";
                         }
 
-                        // Create a new vector source
                         var vectorSource = new ol.source.Vector({
                             format: new ol.format.GeoJSON(),
                             url: url
                         });
 
-                        // Remove the old layer if it exists
                         if (vectorLayer) {
                             map.removeLayer(vectorLayer);
                         }
 
-                        // Create a new vector layer
                         vectorLayer = new ol.layer.Vector({
                             source: vectorSource,
                             style: new ol.style.Style({
                                 image: new ol.style.Circle({
                                     radius: 10,
                                     fill: new ol.style.Fill({
-                                        color: 'rgba(255, 0, 0, 0.8)' // semi-transparent red
+                                        color: 'rgba(255, 0, 0, 0.8)'
                                     }),
                                     stroke: new ol.style.Stroke({
                                         color: 'rgba(0, 0, 0, 0.8)',
@@ -801,7 +779,6 @@
                             })
                         });
 
-                        // Add the vector layer to the map
                         map.addLayer(vectorLayer);
 
                         vectorLayer.getSource().refresh();
@@ -845,8 +822,6 @@
                             url += ")";
                         }
 
-
-                        // Create a new vector source
                         window.open(url, '_blank');
                     })
 
@@ -931,7 +906,6 @@
                 var coordinates = feature.getGeometry().getCoordinates();
                 popup.setPosition(coordinates);
 
-                // Récupérer les propriétés de l'entité
                 var properties = feature.getProperties();
 
                 var id = feature.getId().split(".")[1];
@@ -944,19 +918,17 @@
                 })
                     .then(response => response.json())
                     .then(data => {
-                        // Create the initial content
+
                         var content = '<h1>Informations</h1> <b>Nom : </b>' + properties.nom + '<br>' +
                             '<b>Composante : </b>' + properties.composante + '<br>' +
                             '<b>Adresse : </b>' + properties.adresse + '<br> <b>Service : </b><br>';
 
-                        // Add the list of services to the content
                         data.forEach(service => {
                             content += "-" + service.nom + "<br>";
                         });
 
                         content += "</b>";
 
-                        // Mettre à jour le contenu du popup
                         element.innerHTML = content;
                     })
                     .catch(error => console.error('Error:', error));
@@ -971,7 +943,6 @@
                 addressmerge.value = properties.adresse;
                 idmerge.value = feature.getId().split(".")[1];
 
-                // Réduire la carte et afficher le formulaire
                 mapContainer.style.flexGrow = '0';
                 formContainer.style.flexGrow = '1';
                 formContainer.style.display = 'block';
